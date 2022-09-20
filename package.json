@@ -5,9 +5,10 @@
     "main": "index.js",
     "scripts": {
         "build": "npx build",
-        "dev": "npx nodemon bot/index.ts",
-        "start": "ts-node bot/index.ts",
-        "test": "echo \"Error: no test specified\" && exit 1"
+        "dev": "npx nodemon src/index.ts",
+        "start": "ts-node src/index.ts",
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "typeorm": "typeorm-ts-node-commonjs"
     },
     "author": "",
     "license": "ISC",
@@ -17,6 +18,9 @@
         "fs": "^0.0.1-security",
         "js-yaml": "^4.1.0",
         "qrcode-terminal": "^0.12.0",
+        "reflect-metadata": "^0.1.13",
+        "sqlite3": "^5.1.1",
+        "typeorm": "^0.3.10",
         "wechaty": "^1.20.2",
         "wechaty-puppet-wechat": "^1.18.4",
         "yaml": "^2.1.1"

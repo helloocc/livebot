@@ -1,4 +1,4 @@
-import qrTerm from "qrcode-terminal";
+import * as qrTerm from "qrcode-terminal";
 import {
   Contact,
   Friendship,
