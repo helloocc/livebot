@@ -8,10 +8,7 @@ import {
   WechatyBuilder,
 } from "wechaty";
 import { FriendshipImpl } from "wechaty/impls";
-import { writeFile } from "./utils";
-import { handleCmd } from "./command_helper";
-
-let roomFile = "rooms.yml";
+import { handleCmd } from "./commandHelper";
 
 function onScan(qrcode: string, status: ScanStatus) {
   if (status === ScanStatus.Waiting || status === ScanStatus.Timeout) {
@@ -35,15 +32,6 @@ function onScan(qrcode: string, status: ScanStatus) {
 
 async function onLogin(user: Contact) {
   await user.say(`[${user.id}] login`);
-  bot.Room.findAll()
-    .then(async (roomList) => {
-      for (let room of roomList) {
-        console.info(room.id, await room.topic());
-      }
-      writeFile(roomList, roomFile);
-      return undefined;
-    })
-    .catch(console.error);
 }
 
 function onLogout(user: Contact) {
@@ -81,8 +69,7 @@ async function onMessage(msg: Message) {
   console.info(msg.toString());
 
   if (msg.self()) {
-    console.info("Message discarded because its outgoing");
-    return;
+    console.info("self msg");
   }
 
   if (msg.age() > 10 * 60) {
@@ -99,7 +86,7 @@ async function onMessage(msg: Message) {
     return;
   }
 
-  if (msg.type() == bot.Message.Type.Text) {
+  if (msg.type() === bot.Message.Type.Text) {
     handleCmd(bot, msg);
   }
 }
