@@ -60,16 +60,10 @@ async function onFriendship(friend: Friendship) {
 }
 
 async function onMessage(msg: Message) {
+  console.info(msg.toString());
   let room = msg.room();
   if (room) {
-    console.info("Room message discarded");
     return;
-  }
-
-  console.info(msg.toString());
-
-  if (msg.self()) {
-    console.info("self msg");
   }
 
   if (msg.age() > 10 * 60) {

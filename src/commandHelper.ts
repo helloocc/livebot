@@ -1,6 +1,7 @@
-import { Contact, log, Message, Wechaty } from "wechaty";
+import { Contact, log, Message, Room, Wechaty } from "wechaty";
 import { getRoomList, updateRoom } from "./db/room";
 import { RoomEntity } from "./entity/room";
+import { DefaultRoom } from "./constant";
 
 class Command {
   static help = "帮助";
@@ -17,7 +18,7 @@ class Command {
       this.query,
       this.flushRoom,
     ];
-    console.log(cmdText);
+    log.info(cmdText.toString());
     return cmdText;
   }
 }
@@ -40,7 +41,13 @@ function validateCmd(msgText: string) {
 }
 
 async function handleCmd(bot: Wechaty, msg: Message) {
-  let talker = msg.talker();
+  let talker = null;
+  if (msg.self()) {
+    talker = msg.listener();
+  } else {
+    talker = msg.talker();
+  }
+
   let valid = validateCmd(msg.text());
   if (!valid) {
     return;
@@ -52,7 +59,7 @@ async function handleCmd(bot: Wechaty, msg: Message) {
   try {
     switch (cmd) {
       case Command.query:
-        await query(talker, realText);
+        await queryRoomlist(talker, realText);
         break;
       case Command.addRoom:
         await addRoom(bot, talker, realText);
@@ -60,17 +67,20 @@ async function handleCmd(bot: Wechaty, msg: Message) {
       case Command.flushRoom:
         await flushRoom(bot);
         break;
+      case Command.sellTicket:
+        await sellTicket(bot, talker, realText);
+        break;
     }
   } catch (e) {
     console.error(e);
   }
 }
 
-async function query(talker: Contact, realText: string) {
-  let roomList = await getRoomList(realText);
-  let reply = "No reuslt";
-  if (Array.isArray(roomList) && roomList.length) {
-    let roomTopics = roomList.map((item) => item.topic);
+async function queryRoomlist(talker: Contact, realText: string) {
+  let rooms: RoomEntity[] = await getRoomList(realText);
+  let reply: string = "No reuslt";
+  if (Array.isArray(rooms) && rooms.length) {
+    let roomTopics = rooms.map((item) => item.topic);
     reply = "";
     for (let i in roomTopics) {
       reply += `${Number(i) + 1}. ${roomTopics[i]}\n`;
@@ -80,12 +90,17 @@ async function query(talker: Contact, realText: string) {
   await talker.say(reply);
 }
 
-async function addRoom(bot: Wechaty, talker: Contact, realText: string) {
+async function findRoom(bot: Wechaty, realText: string) {
   let reg: RegExp = new RegExp(`${realText}`, "i");
-  let find_rooms = await bot.Room.findAll({ topic: reg });
-  log.info(`find room: ${find_rooms}`);
-  if (find_rooms) {
-    for (let room of find_rooms) {
+  let rooms: Room[] = await bot.Room.findAll({ topic: reg });
+  log.info(`find rooms: [${rooms}]`);
+  return rooms;
+}
+
+async function addRoom(bot: Wechaty, talker: Contact, realText: string) {
+  let rooms: Room[] = await findRoom(bot, realText);
+  if (rooms) {
+    for (let room of rooms) {
       if (await room.has(talker)) {
         await talker.say(`exist in room: ${await room.topic()}`);
         break;
@@ -94,7 +109,7 @@ async function addRoom(bot: Wechaty, talker: Contact, realText: string) {
       try {
         await room.add(talker);
       } catch (e) {
-        console.error(e);
+        log.error(e);
       }
     }
   }
@@ -116,7 +131,19 @@ async function flushRoom(bot: Wechaty) {
       }
       await bot.currentUser.say("room list:" + roomList.length);
     })
-    .catch(console.error);
+    .catch(log.error);
+}
+
+async function sellTicket(bot: Wechaty, talker: Contact, realText: string) {
+  let rooms: Room[] = await findRoom(bot, DefaultRoom);
+  if (rooms) {
+    for (let room of rooms) {
+      if (await room.has(talker)) {
+        await talker.say(room.toString());
+        await room.say(realText);
+      }
+    }
+  }
 }
 
 export { handleCmd };

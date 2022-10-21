@@ -1,9 +1,9 @@
-import { dump } from "js-yaml";
+import { dump, load } from "js-yaml";
 import * as fs from "fs";
 let ROOMFILE = "rooms.yml";
 
 function readFile(fileName: string) {
-  let fileData = fs.readFileSync(fileName);
+  let fileData = load(fs.readFileSync(fileName, "utf-8"));
   console.info("read file:%s success", fileName);
   return fileData;
 }
