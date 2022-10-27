@@ -1,7 +1,7 @@
 import "reflect-metadata";
 import { DataSource } from "typeorm";
-import { RoomEntity } from "../entity/room";
-import { User } from "../entity/user";
+import { RoomEntity } from "./entity/room";
+import { User } from "./entity/user";
 
 export const AppDataSource = new DataSource({
   type: "sqlite",

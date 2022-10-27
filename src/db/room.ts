@@ -1,5 +1,5 @@
 import { Like } from "typeorm";
-import { RoomEntity } from "../entity/room";
+import { RoomEntity } from "./entity/room";
 import { AppDataSource } from "./data-source";
 
 const db = AppDataSource.initialize();
@@ -12,7 +12,7 @@ async function createRoom(room: RoomEntity) {
   }).catch((error) => console.log(error));
 }
 
-async function getRoomList(keyword: string) {
+async function queryRoom(keyword: string) {
   console.log(`query keyword: ${keyword}`);
   let dbData = await db
     .then(async () => {
@@ -52,4 +52,4 @@ async function updateRoom(newRoom: RoomEntity) {
   }).catch((error) => console.log(error));
 }
 
-export { createRoom, getRoomList, updateRoom };
+export { createRoom, queryRoom, updateRoom };
