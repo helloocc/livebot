@@ -2,7 +2,6 @@ import { Contact, log, Message, Room, Wechaty } from "wechaty";
 import { Command, DefaultRoom } from "./constant";
 import { Reply } from "./reply";
 import {
-  findRoom,
   queryRoomlist,
   flushRoom,
   doBroadcast,
@@ -53,7 +52,7 @@ async function handleCmd(bot: Wechaty, msg: Message) {
   try {
     switch (cmd) {
       case Command.query:
-        await queryRoomlist(bot, talker, realText);
+        await queryRoomlist(talker, realText);
         break;
       case Command.addRoom:
         await addRoom(bot, talker, realText);

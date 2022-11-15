@@ -21,6 +21,9 @@ async function queryRoom(keyword: string) {
         where: {
           topic: Like(`%${keyword}%`),
         },
+        order: {
+          member_num: "DESC",
+        },
       });
       console.log("Loaded room nums: " + rooms.length);
       return rooms;

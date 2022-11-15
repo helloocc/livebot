@@ -1,4 +1,6 @@
 livebot.memory-card.json
+*.sqlite
+
 # Logs
 logs
 *.log

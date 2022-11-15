@@ -29,27 +29,31 @@ async function addRoom(bot: Wechaty, talker: Contact, realText: string) {
 
 async function findRoom(bot: Wechaty, realText: string) {
   let reg: RegExp = new RegExp(`${realText}`, "i");
-  let loadRooms: Room[] = await bot.Room.findAll({ topic: reg });
+  let loadRooms = [];
 
   let dbRoomIds: string[] = (await queryRoom(realText)).map(
     (item) => item.room_id
   );
-  for (let id of dbRoomIds) {
-    loadRooms.concat(await bot.Room.findAll({ id: id }));
+  log.info(`find db rooms: [${dbRoomIds.length}]`);
+  if (dbRoomIds.length == 0) {
+    loadRooms = await bot.Room.findAll({ topic: reg });
   }
-  let uniqRooms = Array.from(new Set(loadRooms));
-  log.info(`find rooms: [${uniqRooms}]`);
-  return uniqRooms;
+
+  for (let id of dbRoomIds) {
+    loadRooms.push(await bot.Room.find({ id: id }));
+  }
+  log.info(`find rooms: [${loadRooms}]`);
+  return loadRooms;
 }
 
-async function queryRoomlist(bot: Wechaty, talker: Contact, realText: string) {
-  let rooms: Room[] = await findRoom(bot, realText);
+async function queryRoomlist(talker: Contact, realText: string) {
+  let rooms: RoomEntity[] = await queryRoom(realText);
   let reply: string = "No reuslt";
   if (Array.isArray(rooms) && rooms.length) {
-    let roomTopics = rooms.map((item) => item.topic());
+    let roomTopics = rooms.map((item) => item.topic);
     reply = "";
     for (let i in roomTopics) {
-      reply += `${Number(i) + 1}. ${await roomTopics[i]}\n`;
+      reply += `${Number(i) + 1}. ${roomTopics[i]}\n`;
     }
   }
   await talker.say(reply);
