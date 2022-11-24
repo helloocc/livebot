@@ -1,12 +1,7 @@
 import { Contact, log, Message, Room, Wechaty } from "wechaty";
-import { Command, DefaultRoom } from "./constant";
+import { Command, defaultRoom } from "./constant";
 import { Reply } from "./reply";
-import {
-  queryRoomlist,
-  flushRoom,
-  doBroadcast,
-  addRoom,
-} from "./roomHelper";
+import { queryRoomlist, flushRoom, doBroadcast, addRoom } from "./roomHelper";
 
 function validateCmd(msgText: string) {
   msgText = msgText.trim();
@@ -52,7 +47,7 @@ async function handleCmd(bot: Wechaty, msg: Message) {
   try {
     switch (cmd) {
       case Command.query:
-        await queryRoomlist(talker, realText);
+        await queryRoomlist(bot, talker, realText);
         break;
       case Command.addRoom:
         await addRoom(bot, talker, realText);
@@ -82,7 +77,7 @@ async function sellTicket(
   }
 
   let ticketInfo = `【出票】\n\n${realText}`;
-  doBroadcast(bot, ticketInfo, DefaultRoom);
+  doBroadcast(bot, ticketInfo, defaultRoom);
 }
 
 export { handleCmd };

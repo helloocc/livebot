@@ -3,12 +3,16 @@ import {
   Contact,
   Friendship,
   Message,
+  Room,
   RoomInvitation,
   ScanStatus,
   WechatyBuilder,
 } from "wechaty";
 import { FriendshipImpl } from "wechaty/impls";
 import { handleCmd } from "./commandHelper";
+import { flushRoom, repostMsg } from "./roomHelper";
+import { RoomEntity } from "./db/entity/room";
+import { updateRoom } from "./db/room";
 
 function onScan(qrcode: string, status: ScanStatus) {
   if (status === ScanStatus.Waiting || status === ScanStatus.Timeout) {
@@ -32,6 +36,7 @@ function onScan(qrcode: string, status: ScanStatus) {
 
 async function onLogin(user: Contact) {
   await user.say(`[${user.id}] login`);
+  await flushRoom(bot);
 }
 
 function onLogout(user: Contact) {
@@ -41,6 +46,20 @@ function onLogout(user: Contact) {
 async function onRoomInvitation(roomInvitation: RoomInvitation) {
   console.info("join room %s", roomInvitation.topic());
   await roomInvitation.accept();
+}
+async function onRoomTopic(
+  room: Room,
+  topic: string,
+  oldTopic: string,
+  changer: Contact
+) {
+  console.log(
+    `Room topic changed from ${oldTopic} to ${topic} by ${changer.name()}`
+  );
+  let newRoom = new RoomEntity();
+  newRoom.room_id = room.id;
+  newRoom.topic = topic;
+  updateRoom(newRoom);
 }
 
 async function onFriendship(friend: Friendship) {
@@ -63,11 +82,12 @@ async function onMessage(msg: Message) {
   console.info(msg.toString());
   let room = msg.room();
   if (room) {
+    await repostMsg(bot, msg, room);
     return;
   }
 
-  if (msg.age() > 10 * 60) {
-    console.info("Message discarded because its TOO OLD(than 2 minutes)");
+  if (msg.age() > 5 * 60) {
+    console.info("Message discarded because its TOO OLD(than 5 minutes)");
     return;
   }
 
@@ -96,6 +116,7 @@ const bot = WechatyBuilder.build({
 bot
   .on("logout", onLogout)
   .on("login", onLogin)
+  .on("room-topic", onRoomTopic)
   .on("room-invite", onRoomInvitation)
   .on("friendship", onFriendship)
   .on("scan", onScan)

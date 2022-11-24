@@ -1,5 +1,5 @@
-import { Contact, log, Room, Wechaty } from "wechaty";
-import { DefaultRoom } from "./constant";
+import { Contact, log, Message, Room, Wechaty } from "wechaty";
+import { defaultRoom, repostRoom } from "./constant";
 import { RoomEntity } from "./db/entity/room";
 import { queryRoom, updateRoom } from "./db/room";
 
@@ -31,7 +31,7 @@ async function findRoom(bot: Wechaty, realText: string) {
   let reg: RegExp = new RegExp(`${realText}`, "i");
   let loadRooms = [];
 
-  let dbRoomIds: string[] = (await queryRoom(realText)).map(
+  let dbRoomIds: string[] = (await queryRoom(bot.currentUser.id, realText)).map(
     (item) => item.room_id
   );
   log.info(`find db rooms: [${dbRoomIds.length}]`);
@@ -46,8 +46,8 @@ async function findRoom(bot: Wechaty, realText: string) {
   return loadRooms;
 }
 
-async function queryRoomlist(talker: Contact, realText: string) {
-  let rooms: RoomEntity[] = await queryRoom(realText);
+async function queryRoomlist(bot: Wechaty, talker: Contact, realText: string) {
+  let rooms: RoomEntity[] = await queryRoom(bot.currentUser.id, realText);
   let reply: string = "No reuslt";
   if (Array.isArray(rooms) && rooms.length) {
     let roomTopics = rooms.map((item) => item.topic);
@@ -81,11 +81,35 @@ async function flushRoom(bot: Wechaty) {
 async function doBroadcast(
   bot: Wechaty,
   text: string,
-  roomTag: string = DefaultRoom
+  roomKey: string = defaultRoom
 ) {
-  let rooms: Room[] = await findRoom(bot, roomTag);
+  let rooms: Room[] = await findRoom(bot, roomKey);
   for (let room of rooms) {
     await room.say(text);
   }
 }
-export { addRoom, doBroadcast, flushRoom, findRoom, queryRoomlist };
+
+async function repostMsg(
+  bot: Wechaty,
+  msg: Message,
+  room: Room
+): Promise<void> {
+  let msgType = msg.type();
+  if (
+    room &&
+    (await isRepostRoom(room)) &&
+    (msgType === bot.Message.Type.Image || msgType === bot.Message.Type.Url)
+  ) {
+    let forwardRooms: Room[] = await findRoom(bot, defaultRoom);
+    await room.say(`msg forward room: ${forwardRooms.length}`);
+    for (let room of forwardRooms) {
+      await msg.forward(room);
+    }
+  }
+}
+
+async function isRepostRoom(room: Room): Promise<boolean> {
+  let topic = room.payload.topic;
+  return topic.includes(repostRoom);
+}
+export { addRoom, doBroadcast, flushRoom, findRoom, queryRoomlist, repostMsg };

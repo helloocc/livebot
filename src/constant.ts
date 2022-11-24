@@ -2,7 +2,8 @@ import { readFile } from "./utils";
 
 const configFile = "conf.yml";
 let conf = readFile(configFile);
-let DefaultRoom = conf["defaultRoom"];
+let defaultRoom = conf["defaultRoom"];
+let repostRoom = conf["repostRoom"];
 
 class Command {
   static help = "帮助";
@@ -23,4 +24,4 @@ class Command {
   }
 }
 
-export { Command, DefaultRoom };
+export { Command, defaultRoom, repostRoom };

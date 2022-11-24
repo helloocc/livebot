@@ -12,13 +12,14 @@ async function createRoom(room: RoomEntity) {
   }).catch((error) => console.log(error));
 }
 
-async function queryRoom(keyword: string) {
+async function queryRoom(botID: string, keyword: string) {
   console.log(`query keyword: ${keyword}`);
   let dbData = await db
     .then(async () => {
       console.log("Loading rooms from the database...");
       const rooms = await AppDataSource.manager.find(RoomEntity, {
         where: {
+          member_ids: Like(`%${botID}%`),
           topic: Like(`%${keyword}%`),
         },
         order: {
@@ -51,7 +52,7 @@ async function updateRoom(newRoom: RoomEntity) {
     }
 
     await AppDataSource.manager.save(dbRoom);
-    console.log("Save room with id: " + dbRoom.id);
+    console.log(`"Save room: [${dbRoom.room_id}-${dbRoom.topic}]`);
   }).catch((error) => console.log(error));
 }
 
